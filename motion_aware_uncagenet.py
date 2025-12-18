@@ -653,7 +653,12 @@ class TemporalFusionModule(nn.Module):
         if prev_features is None:
             return current_features
         
-        if current_features.shape != prev_features.shape:
+        # Check batch size - if different, skip temporal fusion (happens at epoch boundaries)
+        if current_features.shape[0] != prev_features.shape[0]:
+            return current_features
+        
+        # Handle spatial size mismatch
+        if current_features.shape[2:] != prev_features.shape[2:]:
             prev_features = F.interpolate(
                 prev_features, 
                 size=current_features.shape[2:], 
